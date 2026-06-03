@@ -1,0 +1,30 @@
+export const pcfLifecycleLabels: Record<string, string> = {
+  materials: "Materials & packaging",
+  manufacturing: "Manufacturing",
+  transport: "Transport",
+  distribution: "Distribution",
+  use: "Use phase",
+  endOfLife: "End of life",
+};
+
+export const pcfBreakdownLabels: Record<string, string> = {
+  "1_1_raw_materials": "Raw materials",
+  "1_2_inbound_packaging_material": "Inbound packaging",
+  "1_3_outbound_packaging_material": "Outbound packaging",
+  "2_1_electricity_use_in_manufacturing": "Electricity (manufacturing)",
+  "2_2_other_energy_use_in_manufacturing": "Other energy (manufacturing)",
+  "2_3_consumables_and_additives": "Consumables & additives",
+  "2_4_waste_generated": "Waste generated",
+  "3_1_transport_of_materials": "Transport of materials",
+  "3_2_transport_of_packaging": "Transport of packaging",
+  "3_3_transport_of_consumables_and_additives": "Transport of consumables",
+  "3_4_transport_of_waste_to_waste_manager": "Transport of waste",
+  "3_5_internal_transport": "Internal transport",
+  "4_1_product_distribution": "Product distribution",
+  "5_1_product_use": "Product use",
+  "5_2_maintenance_and_servicing": "Maintenance & servicing",
+  "5_3_other_use_stage_emissions": "Other use-stage emissions",
+  "6_1_collection_and_transport_of_end_of_life_products": "EoL collection & transport",
+  "6_2_end_of_life_treatment": "EoL treatment",
+  "6_3_final_disposal": "Final disposal",
+};
