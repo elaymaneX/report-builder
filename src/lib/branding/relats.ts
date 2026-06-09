@@ -14,4 +14,7 @@ export const relatsBrand = {
     heading: "Helvetica-Bold",
     body: "Helvetica",
   },
+  /** Bundled default logo (public/) */
+  logoFile: "public/branding/relats-logo.svg",
+  logoPublicPath: "/branding/relats-logo.svg",
 } as const;

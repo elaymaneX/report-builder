@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const appFont = DM_Sans({
+  variable: "--font-app",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Relats PCF Report Builder",
-  description: "Generate branded Product Carbon Footprint PDF reports",
+  title: "PCF Report Generator",
+  description: "Generate ISO 14067 Product Carbon Footprint PDF reports",
 };
+
+const themeScript = `
+  try {
+    const stored = localStorage.getItem('theme');
+    document.documentElement.setAttribute('data-theme', stored === 'dark' ? 'dark' : 'light');
+  } catch {}
+`;
 
 export default function RootLayout({
   children,
@@ -23,10 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
-      <body className="min-h-full bg-slate-950 text-slate-100 antialiased">
-        {children}
-      </body>
+    <html lang="en" className={`${appFont.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="h-full overflow-hidden antialiased">{children}</body>
     </html>
   );
 }

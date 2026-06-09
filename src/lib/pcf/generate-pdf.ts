@@ -4,7 +4,7 @@ import {
   resolveReportConfig,
 } from "@/lib/pcf/config/resolve-config";
 import { renderPcfPdf } from "@/lib/pcf/pdf/render";
-import type { PartialReportConfig, PcfReportData, ReportConfig } from "@/lib/pcf/types";
+import type { PartialReportConfig, PcfReportData } from "@/lib/pcf/types";
 
 export async function generatePcfPdf(
   data: PcfReportData,

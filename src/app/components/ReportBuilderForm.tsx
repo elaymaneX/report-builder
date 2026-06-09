@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { relatsBrand } from "@/lib/branding/relats";
 import { defaultReportConfig } from "@/lib/pcf/config/defaults";
 import { resolveReportConfig } from "@/lib/pcf/config/resolve-config";
+import { PCF_PDF_FILENAME, PCF_SAMPLE_CSV_PATH } from "@/lib/pcf/fields";
 import type { ReportConfig, ReportTemplate } from "@/lib/pcf/types";
 
 async function requestPdf(body: FormData | string, isJson: boolean) {
@@ -18,31 +20,69 @@ async function requestPdf(body: FormData | string, isJson: boolean) {
     throw new Error(err.error ?? `Server error (${response.status})`);
   }
 
-  return response.blob();
+  const blob = await response.blob();
+  if (blob.size === 0) {
+    throw new Error("Server returned an empty PDF");
+  }
+  return blob;
 }
 
-export function ReportBuilderForm() {
-  const [config, setConfig] = useState<ReportConfig>(defaultReportConfig);
+type ReportBuilderFormProps = {
+  config: ReportConfig;
+  onConfigChange: (config: ReportConfig) => void;
+  resolvedPreview: ReportConfig;
+};
+
+export function ReportBuilderForm({
+  config,
+  onConfigChange,
+  resolvedPreview,
+}: ReportBuilderFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const resolvedPreview = useMemo(() => resolveReportConfig(config), [config]);
   const sectionsLocked = config.template === "summary";
 
   function updateConfig(patch: Partial<ReportConfig>) {
-    setConfig((current) => resolveReportConfig({ ...current, ...patch }));
+    onConfigChange(resolveReportConfig({ ...config, ...patch }));
   }
 
   function updateSections(key: keyof ReportConfig["sections"], value: boolean) {
-    setConfig((current) =>
+    onConfigChange(
       resolveReportConfig({
-        ...current,
-        sections: { ...current.sections, [key]: value },
+        ...config,
+        sections: { ...config.sections, [key]: value },
       }),
     );
   }
+
+  function handleLogoUpload(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      onConfigChange(
+        resolveReportConfig({
+          ...config,
+          branding: {
+            ...config.branding,
+            logoDataUrl: String(reader.result),
+          },
+        }),
+      );
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearCustomLogo() {
+    const branding = { ...config.branding };
+    delete branding.logoDataUrl;
+    onConfigChange(resolveReportConfig({ ...config, branding }));
+  }
+
+  const logoPreview =
+    config.branding.logoDataUrl ?? relatsBrand.logoPublicPath;
 
   function resetPdfUrl() {
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -58,10 +98,7 @@ export function ReportBuilderForm() {
       let blob: Blob;
 
       if (useSample) {
-        blob = await requestPdf(
-          JSON.stringify({ config }),
-          true,
-        );
+        blob = await requestPdf(JSON.stringify({ config }), true);
       } else {
         if (!file) throw new Error("Select a PCF CSV file first");
         const formData = new FormData();
@@ -78,28 +115,34 @@ export function ReportBuilderForm() {
     }
   }
 
-  return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
-        <h2 className="text-sm font-medium text-slate-300">Report configuration</h2>
+  const fieldClass = "mappa-input mt-1.5 w-full rounded-lg px-3 py-2.5 text-sm";
+  const labelClass = "app-muted block text-xs font-medium";
 
-        <div className="mt-4 grid gap-4">
-          <label className="block text-xs text-slate-400">
+  return (
+    <div className="space-y-4 pb-2">
+      <section className="mappa-panel rounded-2xl p-5 sm:p-6">
+        <h2 className="text-sm font-semibold">Report configuration</h2>
+        <p className="app-muted mt-1 text-xs">
+          Manual controls — synced with the AI editor on the right
+        </p>
+
+        <div className="mt-5 grid gap-5">
+          <label className={labelClass}>
             Template
             <select
               value={config.template}
               onChange={(e) =>
                 updateConfig({ template: e.target.value as ReportTemplate })
               }
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100"
+              className={fieldClass}
             >
               <option value="full">Full report</option>
               <option value="summary">Summary only</option>
             </select>
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block text-xs text-slate-400">
+          <div className="grid grid-cols-2 gap-4">
+            <label className={labelClass}>
               Primary color
               <input
                 type="color"
@@ -109,10 +152,10 @@ export function ReportBuilderForm() {
                     branding: { ...config.branding, primaryColor: e.target.value },
                   })
                 }
-                className="mt-1 h-10 w-full cursor-pointer rounded border border-slate-700 bg-slate-800"
+                className="mt-1.5 h-11 w-full cursor-pointer rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] p-1"
               />
             </label>
-            <label className="block text-xs text-slate-400">
+            <label className={labelClass}>
               Accent color
               <input
                 type="color"
@@ -122,12 +165,12 @@ export function ReportBuilderForm() {
                     branding: { ...config.branding, accentColor: e.target.value },
                   })
                 }
-                className="mt-1 h-10 w-full cursor-pointer rounded border border-slate-700 bg-slate-800"
+                className="mt-1.5 h-11 w-full cursor-pointer rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] p-1"
               />
             </label>
           </div>
 
-          <label className="block text-xs text-slate-400">
+          <label className={labelClass}>
             Client name
             <input
               type="text"
@@ -137,11 +180,46 @@ export function ReportBuilderForm() {
                   branding: { ...config.branding, clientName: e.target.value },
                 })
               }
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100"
+              className={fieldClass}
             />
           </label>
 
-          <label className="block text-xs text-slate-400">
+          <div className={labelClass}>
+            Client logo
+            <div
+              className="mt-1.5 flex items-center gap-4 rounded-xl border p-3"
+              style={{
+                borderColor: "var(--input-border)",
+                background: "var(--input-bg)",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoPreview}
+                alt="Logo preview"
+                className="h-10 max-w-[140px] object-contain"
+              />
+              <div className="flex flex-1 flex-col gap-2">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  onChange={(e) => handleLogoUpload(e.target.files?.[0])}
+                  className="w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-mappa-blue file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white"
+                />
+                {config.branding.logoDataUrl && (
+                  <button
+                    type="button"
+                    onClick={clearCustomLogo}
+                    className="mappa-link text-left text-xs"
+                  >
+                    Reset to default logo
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <label className={labelClass}>
             Report title
             <input
               type="text"
@@ -151,11 +229,11 @@ export function ReportBuilderForm() {
                   metadata: { ...config.metadata, reportTitle: e.target.value },
                 })
               }
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100"
+              className={fieldClass}
             />
           </label>
 
-          <label className="block text-xs text-slate-400">
+          <label className={labelClass}>
             Report year
             <input
               type="number"
@@ -164,16 +242,17 @@ export function ReportBuilderForm() {
                 updateConfig({
                   metadata: {
                     ...config.metadata,
-                    reportYear: Number(e.target.value) || defaultReportConfig.metadata.reportYear,
+                    reportYear:
+                      Number(e.target.value) || defaultReportConfig.metadata.reportYear,
                   },
                 })
               }
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100"
+              className={fieldClass}
             />
           </label>
 
-          <fieldset className="space-y-2" disabled={sectionsLocked}>
-            <legend className="text-xs text-slate-400">
+          <fieldset className="space-y-2.5" disabled={sectionsLocked}>
+            <legend className={labelClass}>
               Sections {sectionsLocked && "(locked for summary template)"}
             </legend>
             {(
@@ -184,13 +263,13 @@ export function ReportBuilderForm() {
                 ["topEmissionSources", "Top emission sources"],
               ] as const
             ).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 text-sm text-slate-300">
+              <label key={key} className="flex items-center gap-2.5 text-sm">
                 <input
                   type="checkbox"
                   checked={config.sections[key]}
                   onChange={(e) => updateSections(key, e.target.checked)}
                   disabled={sectionsLocked}
-                  className="rounded border-slate-600"
+                  className="h-4 w-4 rounded accent-mappa-coral"
                 />
                 {label}
               </label>
@@ -199,21 +278,28 @@ export function ReportBuilderForm() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
-        <h2 className="text-sm font-medium text-slate-300">Generate PDF</h2>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="mt-4 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 file:mr-4 file:rounded-md file:border-0 file:bg-teal-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
-        />
+      <section className="mappa-panel rounded-2xl p-5 sm:p-6">
+        <h2 className="text-sm font-semibold">Generate PDF</h2>
+        <p className="app-muted mt-1 text-xs">
+          Step 1: upload your CSV (or use the sample). Step 2: click generate.
+        </p>
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+        <label className={`${labelClass} mt-4`}>
+          PCF data file
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="mappa-input mt-1.5 w-full rounded-lg px-3 py-2.5 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-mappa-blue file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+          />
+        </label>
+
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
             disabled={loading}
             onClick={() => generate(false)}
-            className="flex-1 rounded-lg bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
+            className="mappa-btn-primary flex-1 rounded-xl px-4 py-3 text-sm"
           >
             {loading ? "Generating…" : "Generate from upload"}
           </button>
@@ -221,32 +307,50 @@ export function ReportBuilderForm() {
             type="button"
             disabled={loading}
             onClick={() => generate(true)}
-            className="flex-1 rounded-lg border border-slate-600 px-4 py-3 text-sm font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+            className="mappa-btn-secondary flex-1 rounded-xl px-4 py-3 text-sm"
           >
             Use sample CSV
           </button>
         </div>
 
-        <p className="mt-3 text-xs text-slate-500">
-          Active template: {resolvedPreview.template} ·{" "}
+        <p className="app-muted mt-3 text-xs leading-relaxed">
+          Preview: {resolvedPreview.template} template
           {resolvedPreview.sections.productDetails
-            ? "with product pages"
-            : "no product pages"}
+            ? " · with product pages"
+            : " · no product pages"}
+          .{" "}
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => generate(true)}
+            className="mappa-link text-xs disabled:opacity-50"
+          >
+            Try sample data
+          </button>{" "}
+          or{" "}
+          <a
+            href={`/${PCF_SAMPLE_CSV_PATH.replace(/^public\//, "")}`}
+            download
+            className="mappa-link text-xs"
+          >
+            download CSV template
+          </a>
+          .
         </p>
 
         {error && (
-          <p className="mt-4 rounded-lg bg-red-950 px-4 py-3 text-sm text-red-300 ring-1 ring-red-800">
+          <p className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/50 dark:text-red-300">
             {error}
           </p>
         )}
 
         {pdfUrl && (
-          <div className="mt-4 space-y-2 rounded-lg bg-teal-950 px-4 py-4 ring-1 ring-teal-800">
-            <p className="text-sm text-teal-300">PDF ready.</p>
+          <div className="mappa-success-box mt-4 space-y-3 rounded-xl px-4 py-4">
+            <p className="text-sm font-medium">Your PDF is ready</p>
             <a
               href={pdfUrl}
-              download="relats-pcf-report.pdf"
-              className="block rounded-lg bg-teal-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-teal-500"
+              download={PCF_PDF_FILENAME}
+              className="mappa-btn-primary block rounded-xl px-4 py-3 text-center text-sm"
             >
               Download PDF
             </a>

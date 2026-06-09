@@ -14,6 +14,8 @@ export type ReportConfig = {
     primaryColor: string;
     accentColor: string;
     clientName: string;
+    /** Custom logo as data URL; omit to use bundled Relats logo */
+    logoDataUrl?: string;
   };
   metadata: {
     reportYear: number;

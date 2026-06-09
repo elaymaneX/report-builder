@@ -13,7 +13,22 @@ export type GenerateRequest = {
 };
 
 export async function loadSampleCsv(): Promise<string> {
-  return readFile(path.join(process.cwd(), PCF_SAMPLE_CSV_PATH), "utf-8");
+  const candidates = [
+    path.join(process.cwd(), PCF_SAMPLE_CSV_PATH),
+    path.join(process.cwd(), "public/data/sample_pcf_iso_14067.csv"),
+  ];
+
+  for (const samplePath of candidates) {
+    try {
+      return await readFile(samplePath, "utf-8");
+    } catch {
+      // try next path (e.g. different cwd in production)
+    }
+  }
+
+  throw new Error(
+    "Sample PCF CSV is unavailable on the server. Upload your own CSV file instead.",
+  );
 }
 
 function parseConfigFromSearchParams(searchParams: URLSearchParams): ReportConfig {

@@ -1,26 +1,222 @@
 @import "tailwindcss";
 
-:root {
+:root,
+[data-theme="light"] {
+  --mappa-pink: #fdc2d8;
+  --mappa-orange: #fca65e;
+  --mappa-coral: #ff7983;
+  --mappa-blue: #041282;
+  --mappa-gradient: linear-gradient(
+    135deg,
+    #fdc2d8 0%,
+    #fca65e 32%,
+    #ff7983 58%,
+    #041282 100%
+  );
+
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --muted: #6b7280;
+  --panel-bg: #ffffff;
+  --panel-border: #e5e7eb;
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(4, 18, 130, 0.04);
+  --input-bg: #f9fafb;
+  --input-border: #d1d5db;
+  --input-text: #111827;
+  --header-border: #e5e7eb;
+  --bubble-user-bg: rgba(255, 121, 131, 0.12);
+  --bubble-user-border: rgba(255, 121, 131, 0.35);
+  --bubble-assistant-bg: #f3f4f6;
+  --bubble-assistant-border: #e5e7eb;
+  --success-bg: rgba(255, 121, 131, 0.1);
+  --success-border: rgba(255, 121, 131, 0.3);
+  --scrollbar: rgba(255, 121, 131, 0.55);
+}
+
+[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #f9fafb;
+  --muted: #9ca3af;
+  --panel-bg: rgba(255, 255, 255, 0.04);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --panel-shadow: none;
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.14);
+  --input-text: #f9fafb;
+  --header-border: rgba(255, 255, 255, 0.1);
+  --bubble-user-bg: rgba(255, 121, 131, 0.15);
+  --bubble-user-border: rgba(255, 121, 131, 0.35);
+  --bubble-assistant-bg: rgba(255, 255, 255, 0.06);
+  --bubble-assistant-border: rgba(255, 255, 255, 0.1);
+  --success-bg: rgba(255, 121, 131, 0.12);
+  --success-border: rgba(255, 121, 131, 0.35);
+  --scrollbar: rgba(255, 121, 131, 0.45);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-mappa-pink: var(--mappa-pink);
+  --color-mappa-orange: var(--mappa-orange);
+  --color-mappa-coral: var(--mappa-coral);
+  --color-mappa-blue: var(--mappa-blue);
+  --font-sans: var(--font-app);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-app), "DM Sans", system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.app-muted {
+  color: var(--muted);
+}
+
+.app-header {
+  border-color: var(--header-border);
+  background: var(--background);
+}
+
+.mappa-gradient-text {
+  background: var(--mappa-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mappa-gradient-bar {
+  height: 3px;
+  border-radius: 9999px;
+  background: var(--mappa-gradient);
+}
+
+.mappa-panel {
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
+}
+
+.mappa-input {
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mappa-input::placeholder {
+  color: var(--muted);
+}
+
+.mappa-input:focus {
+  outline: none;
+  border-color: var(--mappa-coral);
+  box-shadow: 0 0 0 3px rgba(255, 121, 131, 0.2);
+}
+
+.mappa-btn-primary {
+  background: var(--mappa-gradient);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.mappa-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.mappa-btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.mappa-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mappa-btn-secondary {
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--foreground);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.mappa-btn-secondary:hover:not(:disabled) {
+  border-color: var(--mappa-coral);
+  background: var(--bubble-user-bg);
+}
+
+.mappa-btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mappa-chip {
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.mappa-chip:hover:not(:disabled) {
+  border-color: var(--mappa-pink);
+  color: var(--foreground);
+}
+
+.mappa-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mappa-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+
+.mappa-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mappa-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--scrollbar);
+}
+
+.mappa-link {
+  color: var(--mappa-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+[data-theme="dark"] .mappa-link {
+  color: var(--mappa-pink);
+}
+
+.mappa-success-box {
+  border: 1px solid var(--success-border);
+  background: var(--success-bg);
+}
+
+.mappa-chat-user {
+  border: 1px solid var(--bubble-user-border);
+  background: var(--bubble-user-bg);
+  color: var(--foreground);
+}
+
+.mappa-chat-assistant {
+  border: 1px solid var(--bubble-assistant-border);
+  background: var(--bubble-assistant-bg);
+  color: var(--foreground);
 }

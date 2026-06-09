@@ -44,23 +44,48 @@ function parseRow(row: Record<string, string>, index: number): PcfProduct {
   };
 }
 
+function normalizeHeader(header: string): string {
+  return header.trim().replace(/^\uFEFF/, "");
+}
+
+function assertProductColumn(rows: Record<string, string>[]): void {
+  if (rows.length === 0) return;
+  const hasProduct = Object.keys(rows[0]).some(
+    (key) => normalizeHeader(key) === "product",
+  );
+  if (!hasProduct) {
+    throw new Error(
+      'CSV must include a "product" column. Export from Excel as CSV (comma-separated) or click "Use sample CSV".',
+    );
+  }
+}
+
 export function parsePcfCsv(csvText: string): PcfReportData {
-  const { data, errors } = Papa.parse<Record<string, string>>(csvText, {
+  const normalizedText = csvText.replace(/^\uFEFF/, "");
+  const { data, errors, meta } = Papa.parse<Record<string, string>>(normalizedText, {
     header: true,
     skipEmptyLines: true,
-    transformHeader: (header) => header.trim(),
+    delimiter: "",
+    transformHeader: normalizeHeader,
   });
 
   if (errors.length > 0) {
     throw new Error(errors[0].message);
   }
 
+  assertProductColumn(data);
+
   const products = data
     .filter((row) => row.product?.trim())
     .map((row, index) => parseRow(row, index));
 
   if (products.length === 0) {
-    throw new Error("No products found in CSV");
+    const delimiter = meta.fields?.length === 1 ? "unknown" : (meta.delimiter ?? ",");
+    throw new Error(
+      delimiter === "unknown" || meta.fields?.length === 1
+        ? 'No products found. Check the CSV uses comma separators and a "product" column.'
+        : "No products found in CSV (rows need a non-empty product name).",
+    );
   }
 
   return {

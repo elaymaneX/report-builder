@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 36" role="img" aria-label="Footprint Mappa">
+  <circle cx="10" cy="18" r="7" fill="#fdc2d8"/>
+  <circle cx="26" cy="18" r="7" fill="#fca65e"/>
+  <circle cx="42" cy="18" r="7" fill="#ff7983"/>
+  <circle cx="58" cy="18" r="7" fill="#041282"/>
+  <text x="74" y="23" font-size="13" fill="#041282">Footprint Mappa</text>
+</svg>
