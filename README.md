@@ -241,6 +241,7 @@ npx vercel --prod
 ## Next steps (out of scope)
 
 - OCF report (`lib/ocf/` mirroring `lib/pcf/`)
+- Integration of the MCP server with existing agents.
 
 ## License
 
