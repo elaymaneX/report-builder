@@ -4,7 +4,7 @@ import { useState } from "react";
 import { relatsBrand } from "@/lib/branding/relats";
 import { defaultReportConfig } from "@/lib/pcf/config/defaults";
 import { resolveReportConfig } from "@/lib/pcf/config/resolve-config";
-import { PCF_PDF_FILENAME, PCF_SAMPLE_CSV_PATH } from "@/lib/pcf/fields";
+import { getPcfPdfFilename, PCF_SAMPLE_CSV_PATH } from "@/lib/pcf/fields";
 import type { ReportConfig, ReportTemplate } from "@/lib/pcf/types";
 
 async function requestPdf(body: FormData | string, isJson: boolean) {
@@ -349,7 +349,7 @@ export function ReportBuilderForm({
             <p className="text-sm font-medium">Your PDF is ready</p>
             <a
               href={pdfUrl}
-              download={PCF_PDF_FILENAME}
+              download={getPcfPdfFilename(config.branding.clientName)}
               className="mappa-btn-primary block rounded-xl px-4 py-3 text-center text-sm"
             >
               Download PDF

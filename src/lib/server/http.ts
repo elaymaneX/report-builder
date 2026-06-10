@@ -1,10 +1,8 @@
-import { PCF_PDF_FILENAME } from "@/lib/pcf/fields";
-
-export function pdfAttachmentResponse(pdf: Buffer): Response {
+export function pdfAttachmentResponse(pdf: Buffer, filename: string): Response {
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${PCF_PDF_FILENAME}"`,
+      "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });
 }

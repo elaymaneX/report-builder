@@ -33,4 +33,24 @@ export const PCF_BREAKDOWN_FIELDS = [
 
 export const PCF_SAMPLE_CSV_PATH = "public/data/sample_pcf_iso_14067.csv";
 
-export const PCF_PDF_FILENAME = "relats-pcf-report.pdf";
+export function getPcfPdfFilename(clientName: string): string {
+  const tokens = clientName
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/[^a-zA-Z0-9]/g, ""))
+    .filter(Boolean);
+
+  if (tokens.length === 0) {
+    return "pcfReport.pdf";
+  }
+
+  const camelCase = tokens
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index === 0) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join("");
+
+  return `${camelCase}.pdf`;
+}
